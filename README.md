@@ -60,7 +60,6 @@ TaskManagerApp/
 │   └── app.log
 │
 ├── main.py                       # Точка входа
-├── requirements.txt              # Зависимости
 └── README.md                     # Документация
 ```
 
