@@ -7,6 +7,7 @@ from app.models.task import Task
 from app.models.workspace import Workspace
 from app.constants.enums import Day, TaskStatus
 from app.constants.messages import Messages
+from app.utils.datetime_utils import format_iso_datetime
 from app.exceptions.custom_exceptions import (
     TaskManagerError,
     TaskNotFoundError,
@@ -41,8 +42,7 @@ class ConsoleUI:
             
             # Проверяем, есть ли workspace
             if self.workspace_service.get_workspace_count() == 0:
-                print("\n👋 Это ваш первый запуск!")
-                print("У вас пока нет пространств задач.")
+                print("\nУ вас пока нет пространств задач.")
                 
                 create = input("\nСоздать новое пространство? (да/нет): ").strip().lower()
                 if create in ["да", "yes", "y", ""]:
@@ -239,10 +239,10 @@ class ConsoleUI:
         """Процесс отметки задачи выполненной."""
         print("\n--- Отметить задачу выполненной ---")
         
-        task_id = input("Введите ID задачи (или название для поиска): ").strip()
+        task_id = input("Введите название задачи: ").strip()
         
         if not task_id:
-            print("❌ ID не может быть пустым!")
+            print("❌ поле не может быть пустым!")
             return
         
         try:
@@ -255,21 +255,8 @@ class ConsoleUI:
                 if not tasks:
                     print(f"❌ {Messages.TASK_NOT_FOUND}")
                     return
-                elif len(tasks) == 1:
-                    task = tasks[0]
-                else:
-                    # Несколько задач с таким названием
-                    print("\nНайдено несколько задач:")
-                    for i, t in enumerate(tasks, 1):
-                        print(f"{i}. {t.title} (ID: {t.id[:8]}...)")
-                    
-                    idx = input("\nВыберите номер задачи: ").strip()
-                    try:
-                        task = tasks[int(idx) - 1]
-                    except (ValueError, IndexError):
-                        print("❌ Неверный номер!")
-                        return
-            
+                task = tasks[0]
+                   
             if task.is_done():
                 print(f"\n⚠️ {Messages.TASK_ALREADY_DONE}")
                 return
@@ -286,7 +273,7 @@ class ConsoleUI:
         """Процесс удаления задачи."""
         print("\n--- Удаление задачи ---")
         
-        task_id = input("Введите ID задачи (или название): ").strip()
+        task_id = input("Введите название задачи (или ID): ").strip()
         
         if not task_id:
             print("❌ ID не может быть пустым!")
@@ -350,19 +337,19 @@ class ConsoleUI:
             if task.description:
                 print(f"  └─ {task.description}")
             print(f"  ID: {task.id[:8]}...")
-            print(f"  Создано: {task.created_at}")
+            print(f"  Создано: {format_iso_datetime(task.created_at)}")
     
     def _edit_task_flow(self) -> None:
         """Процесс редактирования задачи."""
         print("\n--- Редактирование задачи ---")
         
-        task_id = input("Введите ID задачи: ").strip()
-        task = self.task_service.get_task_by_id(task_id)
+        task_name = input("Введите имя задачи: ").strip()
+        task_list = self.task_service.find_by_name(task_name)
         
-        if not task:
+        if not task_list:
             print(f"❌ {Messages.TASK_NOT_FOUND}")
             return
-        
+        task = task_list[0]
         print(f"\nТекущие данные:")
         print(f"Название: {task.title}")
         print(f"Описание: {task.description or '(нет)'}")
@@ -514,8 +501,6 @@ class ConsoleUI:
         for ws in workspaces:
             active = "●" if ws.is_active else "○"
             print(f"\n{active} {ws.name}")
-            if ws.description:
-                print(f"  └─ {ws.description}")
             print(f"  ID: {ws.id[:8]}...")
             print(f"  Создан: {ws.created_at}")
     

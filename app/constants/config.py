@@ -10,7 +10,6 @@ class Config:
     LOG_DIR: Final[Path] = BASE_DIR / "logs"
     
     # Файлы
-    TASKS_FILE: Final[str] = "tasks.json"
     LOG_FILE: Final[str] = "app.log"
     
     # Настройки приложения
